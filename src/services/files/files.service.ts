@@ -1,17 +1,30 @@
-import fs from "fs/promises";
+import {access} from "fs/promises";
+import {createReadStream} from 'fs'
+import path from "path";
 
 class FilesService {
     async isFileExists(filePath: string) {
         try {
-            await fs.access(filePath);
+            await access(filePath);
             return true;
         } catch {
             return false
         }
     }
 
-    async getFileBinary(filePath: string) {
-        return fs.readFile(filePath)
+
+    async createFileStream(filePath: string) {
+        const fileExists = await this.isFileExists(filePath)
+
+        if (!fileExists) {
+            throw new Error('Запрашиваемый файл не существует')
+        }
+
+        return createReadStream(filePath)
+    }
+
+    getFileNameFromPath(filePath: string) {
+        return path.basename(filePath)
     }
 }
 

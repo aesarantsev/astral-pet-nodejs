@@ -1,21 +1,23 @@
-import {filesService} from '../../services/files'
+import {filesService} from "../../services/files";
 
 class LogsController {
     private getFile = async (req, res, filePath) => {
-        const fileExists = await filesService.isFileExists(filePath)
+        try {
+            const fileName = filesService.getFileNameFromPath(filePath);
+            const stream = await filesService.createFileStream(filePath + '12')
 
-        if (!fileExists) {
-            return res.status(404).json({error: 'File not found'})
+            res.writeHead(200, {
+                "Content-Type": "application/octet-stream",
+                "Content-Disposition": "attachment; filename=" + fileName
+            });
+
+            stream.pipe(res);
+        } catch (error) {
+            console.error(error)
+            res.status(400).json({message: (error as Error).message || 'Ошибка загрузки файла'})
         }
 
-        const fileData = await filesService.getFileBinary(filePath);
 
-        res.set({
-            'Content-Type': 'text/plain',
-            'content-disposition': 'attachment;filename=\"data.log\"'
-        })
-
-        return res.end(Buffer.from(fileData));
     }
 
     getErrorLogs = (req, res) => {
