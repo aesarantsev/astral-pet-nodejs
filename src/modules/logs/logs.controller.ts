@@ -1,7 +1,7 @@
 import {filesService} from "../../services/files";
 
 class LogsController {
-    private getFile = async (req, res, filePath) => {
+    private getFile = async (req, res, next, filePath) => {
         try {
             const fileName = filesService.getFileNameFromPath(filePath);
             const stream = await filesService.createFileStream(filePath + '12')
@@ -13,23 +13,22 @@ class LogsController {
 
             stream.pipe(res);
         } catch (error) {
-            console.error(error)
-            res.status(400).json({message: (error as Error).message || 'Ошибка загрузки файла'})
+            next(error)
         }
 
 
     }
 
-    getErrorLogs = (req, res) => {
+    getErrorLogs = (req, res, next) => {
         const filePath = process.env.ERROR_LOGS_FILE_PATH || '';
 
-        return this.getFile(req, res, filePath)
+        return this.getFile(req, res, next, filePath)
     }
 
-    getInfoLogs = (req, res) => {
+    getInfoLogs = (req, res, next) => {
         const filePath = process.env.INFO_LOGS_FILE_PATH || '';
 
-        return this.getFile(req, res, filePath)
+        return this.getFile(req, res, next, filePath)
     }
 }
 
